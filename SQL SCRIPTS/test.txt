@@ -1,1 +1,45 @@
-ПАПКА ДЛЯ СКРИПТОВ...
+--Создаем таблицу Ингридиенты
+CREATE table Ingredients (
+    	IngredientsId int NOT NULL IDENTITY(1,1) PRIMARY KEY, -- IDENTITY(1,1) отвечает за генерацию последовательных чисел.
+    	Expiration_date datetime NOT NULL,
+	ProductName nvarchar(64) NOT NULL,
+	)
+
+--Заполняем таблицу
+insert into Ingredients(Expiration_date, ProductName) 
+	values ('2024-01-01 00:00:00', 'Milk')
+insert into Ingredients(Expiration_date, ProductName) 
+	values ('2024-01-01 00:00:00', 'Banana Juice')
+insert into Ingredients(Expiration_date, ProductName) 
+	values ('2024-01-01 00:00:00', 'Apple Juice')
+
+--Создаем таблицу Рецепты
+create table Recipe (
+	DishId int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	IngredientsId int foreign key references Ingredients(IngredientsId),
+	Amount int NOT NULL
+	)
+
+--Заполняем таблицу
+INSERT INTO Recipe(IngredientsId, Amount) 
+    VALUES (1, 57)
+INSERT INTO Recipe(IngredientsId, Amount) 
+    VALUES (3, 16)
+INSERT INTO Recipe(IngredientsId, Amount) 
+    VALUES (2, 31)
+
+--Создаем таблицу Блюдо
+create table Dish (
+	DishId int foreign key references Recipe(DishId),
+	DishName varchar(255),
+	Price decimal NOT NULL
+        primary key(DishId)
+	)
+
+--Заполняем таблицу
+INSERT INTO Dish(DishId, DishName, Price) 
+    VALUES (1, 'Chiken', 125.0)
+INSERT INTO Dish(DishId, DishName, Price) 
+    VALUES (2, 'Okroshka', 55.0)
+INSERT INTO Dish(DishId, DishName, Price) 
+    VALUES (3, 'Casserole', 45.0)
