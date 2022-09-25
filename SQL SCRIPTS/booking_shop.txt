@@ -1,3 +1,4 @@
+--Создание таблицы Продавца
 CREATE TABLE Seller (
     SellerId int NOT NULL IDENTITY(1,1),
     SellerFirstName nvarchar(64) NOT NULL,
@@ -7,12 +8,23 @@ CREATE TABLE Seller (
     PRIMARY KEY (SellerId)
     )
 
+--Создание таблицы Склада
+CREATE TABLE Storage (
+    StorageId int NOT NULL,
+    StorageHome nvarchar(255) NOT NULL,
+    AmountBooks int NOT NULL,
+    PRIMARY KEY (StorageId)
+    )
+
+--Создание таблицы для Связи
 CREATE TABLE Middle (
     BooksId int NOT NULL,
     SellerId int FOREIGN KEY references Seller(SellerId),
+    StorageId int FOREIGN KEY references Storage(StorageId),
     PRIMARY KEY (BooksId)
     )
 
+--Создание таблицы с книгами
 CREATE TABLE Books (
     BooksId int FOREIGN KEY references Middle(BooksId),
     BookName nvarchar(255) NOT NULL,
@@ -22,6 +34,7 @@ CREATE TABLE Books (
     Price decimal NOT NULL
     )
 
+--Заполнение таблицы Продовцов
 INSERT INTO Seller(SellerFirstName, SellerPatronymic, SellerLastName, BooksExhibited) 
 	VALUES (N'Андрей', N'Петрович', N'Красников', 15)
 INSERT INTO Seller(SellerFirstName, SellerPatronymic, SellerLastName, BooksExhibited) 
@@ -33,17 +46,25 @@ INSERT INTO Seller(SellerFirstName, SellerPatronymic, SellerLastName, BooksExhib
 INSERT INTO Seller(SellerFirstName, SellerPatronymic, SellerLastName, BooksExhibited) 
 	VALUES (N'Петр', N'Петрович', N'Петросян', 2)
 
-INSERT INTO Middle(BooksId, SellerId) 
-	VALUES (3, 1)
-INSERT INTO Middle(BooksId, SellerId) 
-	VALUES (1, 4)
-INSERT INTO Middle(BooksId, SellerId) 
-	VALUES (4, 3)
-INSERT INTO Middle(BooksId, SellerId) 
-	VALUES (2, 2)
-INSERT INTO Middle(BooksId, SellerId) 
-	VALUES (5, 5)
+--Заполнение таблицы Склада
+INSERT INTO Storage(StorageId, StorageHome, AmountBooks) 
+	VALUES (1, N'Ульяновск, ул. Пушкина, д. Колотушкина', 64)
+INSERT INTO Storage(StorageId, StorageHome, AmountBooks) 
+	VALUES (2, N'Ульяновск, ул. Толстова, д. Буратино', 48)
 
+--Заполнение таблицы Связи
+INSERT INTO Middle(BooksId, SellerId, StorageId) 
+	VALUES (3, 1, 1)
+INSERT INTO Middle(BooksId, SellerId, StorageId) 
+	VALUES (1, 4, 2)
+INSERT INTO Middle(BooksId, SellerId, StorageId) 
+	VALUES (4, 3, 1)
+INSERT INTO Middle(BooksId, SellerId, StorageId) 
+	VALUES (2, 2, 1)
+INSERT INTO Middle(BooksId, SellerId, StorageId) 
+	VALUES (5, 5, 2)
+
+--Заполнение таблицы с книгами
 INSERT INTO Books(BooksId, BookName, Auhtor, Genre, ReleaseYear, Price) 
 	VALUES (1, N'Униженные и Оскорбленные', N'Достоевский Ф.М', N'Роман', 1879, 5000)
 INSERT INTO Books(BooksId, BookName, Auhtor, Genre, ReleaseYear, Price) 
@@ -55,6 +76,12 @@ INSERT INTO Books(BooksId, BookName, Auhtor, Genre, ReleaseYear, Price)
 INSERT INTO Books(BooksId, BookName, Auhtor, Genre, ReleaseYear, Price) 
 	VALUES (5, N'Золотой ключик или Приключения Буратино', N'Толстой А.Н', N'Сказка', 1963, 300)
 
-SELECT  Seller.SellerLastName, Seller.SellerFirstName, Seller.SellerPatronymic, Books.BookName, Books.Auhtor, Books.Genre, ReleaseYear, Books.Price FROM Middle
-    LEFT JOIN Seller ON Middle.SellerId = Seller.SellerID
+--Вывод 3х таблиц в одну
+SELECT  Seller.SellerLastName, Seller.SellerFirstName, Seller.SellerPatronymic, Seller.BooksExhibited, Books.BookName, Books.Auhtor, Books.Genre, ReleaseYear, Books.Price, Storage.StorageHome, Storage.AmountBooks FROM Middle
+    LEFT JOIN Seller ON Middle.SellerId = Seller.SellerId
     LEFT JOIN Books ON Books.BooksId = Middle.BooksId
+    LEFT JOIN Storage ON Middle.StorageId = Storage.StorageId
+
+--Операция пополнения склада
+UPDATE Storage
+	SET AmountBooks = AmountBooks + 15
