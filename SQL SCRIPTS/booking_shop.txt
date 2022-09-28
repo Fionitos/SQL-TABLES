@@ -1,83 +1,153 @@
 --Создание таблицы Продавца
 CREATE TABLE Seller (
     SellerId int NOT NULL IDENTITY(1,1),
-    SellerFirstName nvarchar(64) NOT NULL,
-    SellerPatronymic nvarchar(64) NOT NULL,
-    SellerLastName nvarchar(64) NOT NULL,
-    BooksExhibited int NOT NULL,
+    SellerFName nvarchar(64) NOT NULL,
+    SellerMName nvarchar(64) NOT NULL,
+    SellerLName nvarchar(64) NOT NULL,
+    BooksExhibited int NOT NULL CHECK (BooksExhibited >= 0),
     PRIMARY KEY (SellerId)
-    )
-
---Создание таблицы Склада
-CREATE TABLE Storage (
-    StorageId int NOT NULL,
-    StorageHome nvarchar(255) NOT NULL,
-    AmountBooks int NOT NULL,
-    PRIMARY KEY (StorageId)
-    )
-
---Создание таблицы для Связи
-CREATE TABLE Middle (
-    BooksId int NOT NULL,
-    SellerId int FOREIGN KEY references Seller(SellerId),
-    StorageId int FOREIGN KEY references Storage(StorageId),
-    PRIMARY KEY (BooksId)
     )
 
 --Создание таблицы с книгами
 CREATE TABLE Books (
-    BooksId int FOREIGN KEY references Middle(BooksId),
+    BooksId int NOT NULL IDENTITY(1,1) UNIQUE,
     BookName nvarchar(255) NOT NULL,
-    Auhtor nvarchar(255) NOT NULL,
+    PRIMARY KEY (BooksId)
+    )
+--Создание таблицы с информацией о книгами
+CREATE TABLE BooksDatails (
+    BooksId int FOREIGN KEY references Books(BooksId) ON DELETE CASCADE,
+    Author nvarchar(255) NOT NULL,
     Genre nvarchar(255) NOT NULL,
     ReleaseYear int NOT NULL,
-    Price decimal NOT NULL
+    PRIMARY KEY (BooksId)
     )
 
---Заполнение таблицы Продовцов
-INSERT INTO Seller(SellerFirstName, SellerPatronymic, SellerLastName, BooksExhibited) 
-	VALUES (N'Андрей', N'Петрович', N'Красников', 15)
-INSERT INTO Seller(SellerFirstName, SellerPatronymic, SellerLastName, BooksExhibited) 
+--Создание таблицы Склада
+CREATE TABLE Storage (
+    BooksId int FOREIGN KEY references Books(BooksId) ON DELETE CASCADE,
+    StorageHome nvarchar(255) NOT NULL,
+    Qty int DEFAULT 0 CHECK (Qty >= 0),
+    PRIMARY KEY (Qty)
+    )
+
+--Создание таблицы Заказа
+CREATE TABLE OrderDatails (
+    OrderId int NOT NULL IDENTITY(1,1),
+    BooksId int FOREIGN KEY references Books(BooksId) ON DELETE SET NULL,
+    Qty int FOREIGN KEY references Storage(Qty),
+    Price money NOT NULL,
+    TotalPrice AS CONVERT(money, Qty*Price),
+    PRIMARY KEY (OrderId)
+    )
+    
+--Создание таблицы Клиента
+CREATE TABLE Customers (
+    CustomerId int NOT NULL IDENTITY(1,1),
+    FName nvarchar(64) NOT NULL,
+    MName nvarchar(64) NOT NULL,
+    LName nvarchar(64) NOT NULL,
+    Adress nvarchar(64) NOT NULL,
+    City nvarchar(64) NOT NULL,
+    Phone char(12) NOT NULL CHECK (Phone LIKE '([0-9][0-9][0-9])[0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+    PRIMARY KEY (CustomerId)
+    )
+
+--Создание таблицы составление Заказа
+CREATE TABLE Orders (
+    OrderId int FOREIGN KEY references OrderDatails(OrderId) ON DELETE SET NULL,
+    CustomerId int FOREIGN KEY references Customers(CustomerId) ON DELETE SET NULL,
+    SellerId int FOREIGN KEY references Seller(SellerId) ON DELETE SET NULL,
+    )
+
+--Заполнение таблицы Продавцов
+INSERT INTO Seller(SellerFName, SellerMName, SellerLName, BooksExhibited) 
+	VALUES (N'Андрей', N'Петрович', N'Красников', 8)
+INSERT INTO Seller(SellerFName, SellerMName, SellerLName, BooksExhibited) 
 	VALUES (N'Иван', N'Иванович', N'Иванов', 4)
-INSERT INTO Seller(SellerFirstName, SellerPatronymic, SellerLastName, BooksExhibited) 
+INSERT INTO Seller(SellerFName, SellerMName, SellerLName, BooksExhibited) 
 	VALUES (N'Дарья', N'Борисовна', N'Носкова', 6)
-INSERT INTO Seller(SellerFirstName, SellerPatronymic, SellerLastName, BooksExhibited) 
-	VALUES (N'Светлана', N'Николаевна', N'Лукина', 9)
-INSERT INTO Seller(SellerFirstName, SellerPatronymic, SellerLastName, BooksExhibited) 
-	VALUES (N'Петр', N'Петрович', N'Петросян', 2)
-
---Заполнение таблицы Склада
-INSERT INTO Storage(StorageId, StorageHome, AmountBooks) 
-	VALUES (1, N'Ульяновск, ул. Пушкина, д. Колотушкина', 64)
-INSERT INTO Storage(StorageId, StorageHome, AmountBooks) 
-	VALUES (2, N'Ульяновск, ул. Толстова, д. Буратино', 48)
-
---Заполнение таблицы Связи
-INSERT INTO Middle(BooksId, SellerId, StorageId) 
-	VALUES (3, 1, 1)
-INSERT INTO Middle(BooksId, SellerId, StorageId) 
-	VALUES (1, 4, 2)
-INSERT INTO Middle(BooksId, SellerId, StorageId) 
-	VALUES (4, 3, 1)
-INSERT INTO Middle(BooksId, SellerId, StorageId) 
-	VALUES (2, 2, 1)
-INSERT INTO Middle(BooksId, SellerId, StorageId) 
-	VALUES (5, 5, 2)
+INSERT INTO Seller(SellerFName, SellerMName, SellerLName, BooksExhibited) 
+	VALUES (N'Светлана', N'Николаевна', N'Лукина', 5)
+INSERT INTO Seller(SellerFName, SellerMName, SellerLName, BooksExhibited) 
+	VALUES (N'Петр', N'Петрович', N'Петросян', 3)
 
 --Заполнение таблицы с книгами
-INSERT INTO Books(BooksId, BookName, Auhtor, Genre, ReleaseYear, Price) 
-	VALUES (1, N'Униженные и Оскорбленные', N'Достоевский Ф.М', N'Роман', 1879, 5000)
-INSERT INTO Books(BooksId, BookName, Auhtor, Genre, ReleaseYear, Price) 
-	VALUES (2, N'У самого моря', N'Ахматова А.А', N'Поэма', 1921, 1000)
-INSERT INTO Books(BooksId, BookName, Auhtor, Genre, ReleaseYear, Price) 
-	VALUES (3, N'История Государства Российского', N'Карамзин Н.М', N'Многотомное Сочинение', 1842, 5000)
-INSERT INTO Books(BooksId, BookName, Auhtor, Genre, ReleaseYear, Price) 
-	VALUES (4, N'Пестрые Рассказы', N'Чехов А.П', N'Сборник', 1895, 5000)
-INSERT INTO Books(BooksId, BookName, Auhtor, Genre, ReleaseYear, Price) 
-	VALUES (5, N'Золотой ключик или Приключения Буратино', N'Толстой А.Н', N'Сказка', 1963, 300)
+INSERT INTO Books(BookName) 
+	VALUES (N'Униженные и Оскорбленные')
+INSERT INTO Books(BookName) 
+	VALUES (N'У самого моря')
+INSERT INTO Books(BookName) 
+	VALUES (N'История Государства Российского')
+INSERT INTO Books(BookName) 
+	VALUES (N'Пестрые Рассказы')
+INSERT INTO Books(BookName) 
+	VALUES (N'Золотой ключик или Приключения Буратино')
+
+--Заполнение таблицы с информацией о книгах
+INSERT INTO BooksDatails(BooksId, Author, Genre, ReleaseYear) 
+	VALUES (1, N'Достоевский Ф.М', N'Роман', 1879)
+INSERT INTO BooksDatails(BooksId, Author, Genre, ReleaseYear) 
+	VALUES (2, N'Ахматова А.А', N'Поэма', 1921)
+INSERT INTO BooksDatails(BooksId, Author, Genre, ReleaseYear) 
+	VALUES (3, N'Карамзин Н.М', N'Многотомное Сочинение', 1842)
+INSERT INTO BooksDatails(BooksId, Author, Genre, ReleaseYear) 
+	VALUES (4, N'Чехов А.П', N'Сборник', 1895)
+INSERT INTO BooksDatails(BooksId, Author, Genre, ReleaseYear) 
+	VALUES (5, N'Толстой А.Н', N'Сказка', 1963)
+
+--Заполнение таблицы Склада
+INSERT INTO Storage(BooksId, StorageHome, Qty) 
+	VALUES (1, N'Ульяновск, ул. Пушкина, д. Колотушкина', 3)
+INSERT INTO Storage(BooksId, StorageHome, Qty) 
+	VALUES (2, N'Ульяновск, ул. Толстова, д. Буратино', 2)
+INSERT INTO Storage(BooksId, StorageHome, Qty) 
+	VALUES (3, N'Ульяновск, ул. Толстова, д. Буратино', 1)
+INSERT INTO Storage(BooksId, StorageHome, Qty) 
+	VALUES (4, N'Ульяновск, ул. Пушкина, д. Колотушкина', 4)
+INSERT INTO Storage(BooksId, StorageHome, Qty) 
+	VALUES (5, N'Ульяновск, ул. Пушкина, д. Колотушкина', 6)
+
+--Заполнение таблицы Заказа
+INSERT INTO OrderDatails(BooksId, Qty, Price) 
+	VALUES (1, 2, 5000)
+INSERT INTO OrderDatails(BooksId, Qty, Price) 
+	VALUES (2, 1, 1000)
+INSERT INTO OrderDatails(BooksId, Qty, Price) 
+	VALUES (3, 1, 5000)
+INSERT INTO OrderDatails(BooksId, Qty, Price) 
+	VALUES (4, 2, 5000)
+INSERT INTO OrderDatails(BooksId, Qty, Price) 
+	VALUES (5, 1, 300)
+
+--Заполнение таблицы Клиента
+INSERT INTO Customers(FName, MName, LName, Adress, City, Phone) 
+	VALUES (N'Александр', N'Андреевич', N'Хорьков', N'Лен. Шоссе, 25, 11', N'Хорьков', '(981)5515515')
+INSERT INTO Customers(FName, MName, LName, Adress, City, Phone) 
+	VALUES (N'Максим', N'Максимович', N'Максимов', N'Московское шоссе, 12, 31', N'Москва', '(981)6614316')
+INSERT INTO Customers(FName, MName, LName, Adress, City, Phone) 
+	VALUES (N'Дмитрий', N'Дмитревич', N'Донской', N'Донская улица, 3, 21', N'Донецк', '(911)8411416')
+INSERT INTO Customers(FName, MName, LName, Adress, City, Phone) 
+	VALUES (N'Анатолий', N'Анатольевич', N'Горький', N'Горьковская улица, 9, 27', N'Новосибирск', '(981)6264384')
+INSERT INTO Customers(FName, MName, LName, Adress, City, Phone) 
+	VALUES (N'Никита', N'Генадьевич', N'Ходаков', N'улица Строителей, 15, 25', N'Владивосток', '(911)1674536')
+
+--Заполнение таблицы Связи
+INSERT INTO Orders(OrderId, CustomerId, SellerId) 
+	VALUES (1, 1, 1)
+INSERT INTO Orders(OrderId, CustomerId, SellerId) 
+	VALUES (2, 5, 4)
+INSERT INTO Orders(OrderId, CustomerId, SellerId) 
+	VALUES (3, 3, 3)
+INSERT INTO Orders(OrderId, CustomerId, SellerId) 
+	VALUES (4, 4, 2)
+INSERT INTO Orders(OrderId, CustomerId, SellerId)
+	VALUES (5, 2, 5)
+
+--↓↓↓↓ ОФФТОП!!!! ↓↓↓↓
 
 --Вывод 3х таблиц в одну
-SELECT  Seller.SellerLastName, Seller.SellerFirstName, Seller.SellerPatronymic, Seller.BooksExhibited, Books.BookName, Books.Auhtor, Books.Genre, ReleaseYear, Books.Price, Storage.StorageHome, Storage.AmountBooks FROM Middle
+SELECT  Seller.SellerLastName, Seller.SellerFirstName, Seller.SellerPatronymic, Seller.BooksExhibited, Books.BookName, Books.Author, Books.Genre, ReleaseYear, Books.Price, Storage.StorageHome, Storage.AmountBooks FROM Middle
     LEFT JOIN Seller ON Middle.SellerId = Seller.SellerId
     LEFT JOIN Books ON Books.BooksId = Middle.BooksId
     LEFT JOIN Storage ON Middle.StorageId = Storage.StorageId
