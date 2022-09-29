@@ -25,7 +25,7 @@ CREATE TABLE BooksDatails (
 
 --Создание таблицы Склада
 CREATE TABLE Storage (
-    BooksId int FOREIGN KEY references Books(BooksId) ON DELETE CASCADE,
+    BooksId int FOREIGN KEY references Books(BooksId) ON DELETE SET NULL,
     StorageHome nvarchar(255) NOT NULL,
     Qty int DEFAULT 0 CHECK (Qty >= 0),
     PRIMARY KEY (Qty)
@@ -144,14 +144,39 @@ INSERT INTO Orders(OrderId, CustomerId, SellerId)
 INSERT INTO Orders(OrderId, CustomerId, SellerId)
 	VALUES (5, 2, 5)
 
---↓↓↓↓ ОФФТОП!!!! ↓↓↓↓
+
+CREATE TRIGGER MinucBook
+ON OrderDatails
+AFTER INSERT
+AS
+	UPDATE Storage
+    	SET Qty = Qty - (SELECT Qty FROM OrderDatails)
+    	WHERE BooksId = (SELECT BooksId FROM Inserted);
+--Создание Тригера на покупку книги
+CREATE TRIGGER BuyBook
+ON OrderDatails
+AFTER INSERT
+AS
+        DELETE FROM Books
+	WHERE BooksId = (SELECT BooksId FROM Inserted);
+
+--Создание тригера на Уменьшение книги у продавца при ее покупке
+CREATE TRIGGER MinusBook
+ON Orders
+AFTER INSERT
+AS
+    UPDATE Seller
+    SET BooksExhibited = BooksExhibited - (SELECT Qty FROM OrderDatails)
+    WHERE SellerId = (SELECT SellerId FROM Inserted);
+
+--Операция пополнения склада
+UPDATE Storage
+	SET AmountBooks = AmountBooks + 5
+
+--↓↓↓↓ ОФФТОП! ↓↓↓↓
 
 --Вывод 3х таблиц в одну
 SELECT  Seller.SellerLastName, Seller.SellerFirstName, Seller.SellerPatronymic, Seller.BooksExhibited, Books.BookName, Books.Author, Books.Genre, ReleaseYear, Books.Price, Storage.StorageHome, Storage.AmountBooks FROM Middle
     LEFT JOIN Seller ON Middle.SellerId = Seller.SellerId
     LEFT JOIN Books ON Books.BooksId = Middle.BooksId
     LEFT JOIN Storage ON Middle.StorageId = Storage.StorageId
-
---Операция пополнения склада
-UPDATE Storage
-	SET AmountBooks = AmountBooks + 15
