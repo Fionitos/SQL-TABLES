@@ -145,20 +145,22 @@ INSERT INTO Orders(OrderId, CustomerId, SellerId)
 	VALUES (5, 2, 5)
 
 
-CREATE TRIGGER MinucBook
-ON OrderDatails
-AFTER INSERT
-AS
-	UPDATE Storage
-    	SET Qty = Qty - (SELECT Qty FROM OrderDatails)
-    	WHERE BooksId = (SELECT BooksId FROM Inserted);
---Создание Тригера на покупку книги
 CREATE TRIGGER BuyBook
-ON OrderDatails
-AFTER INSERT
-AS
-        DELETE FROM Books
-	WHERE BooksId = (SELECT BooksId FROM Inserted);
+ON OrderDatails 
+AFTER INSERT 
+AS 
+   UPDATE Storage 
+   SET Qty = Qty - (SELECT Qty FROM Inserted) 
+   WHERE BooksId = (SELECT BooksId FROM Inserted); 
+   
+    IF (SELECT Storage.Qty FROM Storage JOIN inserted ON Storage.BooksId = inserted.BooksId 
+        WHERE Storage.BooksId= inserted.BooksId) = 0
+    BEGIN
+       DELETE book
+       FROM Books book
+       JOIN inserted
+       ON book.BooksId = inserted.BooksId
+    END
 
 --Создание тригера на Уменьшение книги у продавца при ее покупке
 CREATE TRIGGER MinusBook
